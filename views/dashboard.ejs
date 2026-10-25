@@ -1,0 +1,131 @@
+<%- include('partials/header') %>
+<section class="hero hero-small">
+  <div class="container">
+    <h1>Docentendashboard</h1>
+    <p class="lead">Beheer projectgroepen en aanmeldingen.</p>
+  </div>
+</section>
+
+<section class="container section">
+  <%- include('partials/errors', { errors: errors }) %>
+
+  <div class="stat-row">
+    <div class="stat"><span class="stat-value"><%= stats.groups %></span><span class="stat-label">Groepen</span></div>
+    <div class="stat"><span class="stat-value"><%= stats.students %></span><span class="stat-label">Studenten aangemeld</span></div>
+    <div class="stat"><span class="stat-value"><%= stats.openSpots %></span><span class="stat-label">Vrije plekken</span></div>
+    <div class="stat"><span class="stat-value"><%= stats.fullGroups %></span><span class="stat-label">Volle groepen</span></div>
+  </div>
+
+  <div class="toolbar">
+    <form method="post" action="/teacher/signup-status" class="inline">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="hidden" name="closed" value="<%= signupClosed ? '0' : '1' %>">
+      <span class="status-pill <%= signupClosed ? 'closed' : 'open' %>">Aanmelden <%= signupClosed ? 'gesloten' : 'open' %></span>
+      <button type="submit" class="btn btn-secondary btn-sm"><%= signupClosed ? 'Aanmelden openen' : 'Aanmelden sluiten' %></button>
+    </form>
+    <a class="btn btn-secondary btn-sm" href="/teacher/export.csv">Exporteer CSV <span aria-hidden="true">&darr;</span></a>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <h2>Nieuwe groep</h2>
+      <form method="post" action="/teacher/groups" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>Naam <input name="name" required maxlength="60" value="<%= newGroup.name %>"></label>
+        <label>Omschrijving (optioneel) <textarea name="description" maxlength="500" rows="2"><%= newGroup.description %></textarea></label>
+        <label>Max. aantal studenten
+          <select name="capacity">
+            <% for (let i = maxSize; i >= 1; i--) { %><option value="<%= i %>" <%= Number(newGroup.capacity) === i ? 'selected' : '' %>><%= i %></option><% } %>
+          </select>
+        </label>
+        <button type="submit" class="btn btn-primary">Groep aanmaken</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Snel meerdere groepen</h2>
+      <form method="post" action="/teacher/groups/bulk" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>Naam-voorvoegsel <input name="prefix" value="Groep" maxlength="50"></label>
+        <label>Aantal groepen <input name="count" type="number" min="1" max="50" value="5"></label>
+        <button type="submit" class="btn btn-secondary">Groepen aanmaken</button>
+      </form>
+    </div>
+  </div>
+
+  <h2 class="section-title">Groepen en leden</h2>
+  <% if (!groups.length) { %>
+    <div class="empty"><p>Er zijn nog geen groepen. Maak er hierboven een aan.</p></div>
+  <% } %>
+  <div class="dash-groups">
+    <% groups.forEach(function (g) { const full = g.spots_left <= 0; %>
+      <article class="dash-group" id="group-<%= g.id %>">
+        <header class="dash-group-head">
+          <div>
+            <h3><%= g.name %></h3>
+            <% if (g.description) { %><p class="muted"><%= g.description %></p><% } %>
+          </div>
+          <span class="badge <%= full ? 'badge-full' : 'badge-open' %>"><%= g.member_count %>/<%= g.capacity %></span>
+        </header>
+
+        <% if (g.members.length) { %>
+          <table class="members">
+            <thead><tr><th>Naam</th><th>Studentnr.</th><th>E-mail</th><th><span class="sr-only">Acties</span></th></tr></thead>
+            <tbody>
+            <% g.members.forEach(function (m) { %>
+              <tr>
+                <td><%= m.name %></td>
+                <td><%= m.student_number %></td>
+                <td><a href="mailto:<%= m.email %>"><%= m.email %></a></td>
+                <td class="actions">
+                  <% const targets = groups.filter(function (o) { return o.id !== g.id && o.spots_left > 0; }); %>
+                  <% if (targets.length) { %>
+                  <form method="post" action="/teacher/students/<%= m.id %>/move" class="inline">
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <label class="sr-only" for="move-<%= m.id %>">Verplaats naar</label>
+                    <select name="groupId" id="move-<%= m.id %>">
+                      <% targets.forEach(function (o) { %><option value="<%= o.id %>"><%= o.name %></option><% }) %>
+                    </select>
+                    <button type="submit" class="btn btn-ghost btn-sm">Verplaats</button>
+                  </form>
+                  <% } %>
+                  <form method="post" action="/teacher/students/<%= m.id %>/remove" class="inline" data-confirm="<%= m.name %> uit <%= g.name %> verwijderen?">
+                    <input type="hidden" name="_csrf" value="<%= csrf %>">
+                    <button type="submit" class="btn btn-danger btn-sm">Verwijder</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p class="muted">Nog geen aanmeldingen.</p>
+        <% } %>
+
+        <details class="edit">
+          <summary>Groep bewerken</summary>
+          <form method="post" action="/teacher/groups/<%= g.id %>/update" class="form form-inline">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <label>Naam <input name="name" required maxlength="60" value="<%= g.name %>"></label>
+            <label>Omschrijving <input name="description" maxlength="500" value="<%= g.description %>"></label>
+            <label>Max.
+              <select name="capacity">
+                <% for (let i = maxSize; i >= 1; i--) { %><option value="<%= i %>" <%= g.capacity === i ? 'selected' : '' %>><%= i %></option><% } %>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-secondary btn-sm">Opslaan</button>
+          </form>
+          <form method="post" action="/teacher/groups/<%= g.id %>/delete" class="inline" data-confirm="Groep <%= g.name %> en alle <%= g.member_count %> aanmeldingen verwijderen?">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button type="submit" class="btn btn-danger btn-sm">Groep verwijderen</button>
+          </form>
+        </details>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<script>
+  document.querySelectorAll('form[data-confirm]').forEach(function (f) {
+    f.addEventListener('submit', function (e) { if (!confirm(f.dataset.confirm)) e.preventDefault(); });
+  });
+</script>
+<%- include('partials/footer') %>

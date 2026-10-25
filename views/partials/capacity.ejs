@@ -1,0 +1,3 @@
+<div class="capacity" aria-label="<%= g.member_count %> van <%= g.capacity %> plekken bezet">
+  <% for (let i = 0; i < g.capacity; i++) { %><span class="seat <%= i < g.member_count ? 'taken' : '' %>"></span><% } %>
+</div>

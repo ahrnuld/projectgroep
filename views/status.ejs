@@ -1,0 +1,49 @@
+<%- include('partials/header') %>
+<section class="hero hero-small">
+  <div class="container">
+    <h1>Mijn aanmelding</h1>
+    <p class="lead">Bekijk bij welke groep je bent aangemeld, of meld je af om van groep te wisselen.</p>
+  </div>
+</section>
+
+<section class="container section two-col">
+  <div class="panel">
+    <h2>Opzoeken</h2>
+    <form method="get" action="/status" class="form">
+      <label>Studentnummer
+        <input name="studentNumber" required inputmode="numeric" maxlength="8" value="<%= studentNumber %>">
+      </label>
+      <button type="submit" class="btn btn-secondary">Zoeken <span aria-hidden="true">&rarr;</span></button>
+    </form>
+    <% if (searched) { %>
+      <div class="result" role="status">
+        <% if (groupName) { %>
+          Je bent aangemeld bij <a href="/groups/<%= groupId %>"><strong><%= groupName %></strong></a>.
+        <% } else { %>
+          Geen aanmelding gevonden voor dit studentnummer.
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="panel panel-accent">
+    <h2>Afmelden</h2>
+    <% if (signupClosed) { %>
+      <p>Aanmelden en afmelden is gesloten. Neem contact op met je docent.</p>
+    <% } else { %>
+      <p class="muted">Ter controle vragen we je studentnummer én het e-mailadres waarmee je je hebt aangemeld.</p>
+      <%- include('partials/errors', { errors: errors }) %>
+      <form method="post" action="/withdraw" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>Studentnummer
+          <input name="studentNumber" required inputmode="numeric" maxlength="8" value="<%= values.studentNumber || '' %>">
+        </label>
+        <label>E-mailadres
+          <input name="email" type="email" required value="<%= values.email || '' %>">
+        </label>
+        <button type="submit" class="btn btn-primary">Afmelden</button>
+      </form>
+    <% } %>
+  </div>
+</section>
+<%- include('partials/footer') %>

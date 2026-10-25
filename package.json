@@ -1,0 +1,23 @@
+{
+  "name": "inholland-projectgroepen",
+  "version": "1.0.0",
+  "description": "Students sign up for project groups (max 4 per group); teachers manage them from a dashboard.",
+  "private": true,
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test --test-reporter=spec \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "ejs": "^7.0.2",
+    "express": "^4.22.3",
+    "express-session": "^1.19.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1"
+  }
+}

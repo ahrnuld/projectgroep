@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Projectgroepen Inholland</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="Projectgroepen, naar de startpagina">
+        <span class="brand-word">inholland</span>
+        <span class="brand-sub">projectgroepen</span>
+      </a>
+      <nav class="main-nav" aria-label="Hoofdmenu">
+        <a href="/" class="<%= path === '/' ? 'active' : '' %>">Groepen</a>
+        <a href="/status" class="<%= path === '/status' ? 'active' : '' %>">Mijn aanmelding</a>
+        <% if (isTeacher) { %>
+          <a href="/teacher" class="<%= path.startsWith('/teacher') ? 'active' : '' %>">Dashboard</a>
+          <form method="post" action="/teacher/logout" class="inline">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <button type="submit" class="nav-button">Uitloggen</button>
+          </form>
+        <% } else { %>
+          <a href="/teacher/login" class="nav-teacher" title="Docenten">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a5 5 0 0 1 5 5v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v3h6V7a3 3 0 0 0-3-3Z"/></svg>
+            <span>Docent</span>
+          </a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+  <% if (flash) { %>
+    <div class="container">
+      <div class="alert alert-<%= flash.type %>" role="status"><%= flash.text %></div>
+    </div>
+  <% } %>

@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+<section class="hero hero-small">
+  <div class="container"><h1>Inloggen docent</h1></div>
+</section>
+<section class="container section narrow">
+  <div class="panel panel-accent">
+    <% if (error) { %><div class="alert alert-error" role="alert"><%= error %></div><% } %>
+    <form method="post" action="/teacher/login" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label>Wachtwoord
+        <input name="password" type="password" required autocomplete="current-password" autofocus>
+      </label>
+      <button type="submit" class="btn btn-primary">Inloggen <span aria-hidden="true">&rarr;</span></button>
+    </form>
+  </div>
+</section>
+<%- include('partials/footer') %>

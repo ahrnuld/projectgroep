@@ -1,0 +1,59 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="container">
+    <h1>Kies je projectgroep</h1>
+    <p class="lead">Zoek een groep met nog vrije plekken en meld je aan. Elke groep heeft maximaal <%= maxSize %> studenten.</p>
+    <div class="hero-stats">
+      <span><strong><%= stats.groups %></strong> groepen</span>
+      <span><strong><%= stats.openSpots %></strong> vrije plekken</span>
+      <span><strong><%= stats.students %></strong> aangemeld</span>
+    </div>
+  </div>
+</section>
+
+<section class="container section">
+  <% if (signupClosed) { %>
+    <div class="alert alert-info" role="status">Aanmelden is op dit moment gesloten. Neem contact op met je docent.</div>
+  <% } %>
+
+  <% if (!groups.length) { %>
+    <div class="empty">
+      <h2>Nog geen groepen</h2>
+      <p>Je docent heeft nog geen projectgroepen aangemaakt. Kom later terug.</p>
+    </div>
+  <% } else { %>
+    <div class="section-head">
+      <h2>Alle groepen</h2>
+      <label class="toggle"><input type="checkbox" id="only-open"> Alleen groepen met plek</label>
+    </div>
+    <ul class="group-grid">
+      <% groups.forEach(function (g) { const full = g.spots_left <= 0; %>
+        <li class="group-card <%= full ? 'is-full' : '' %>" data-full="<%= full %>">
+          <a href="/groups/<%= g.id %>">
+            <div class="card-top">
+              <h3><%= g.name %></h3>
+              <span class="badge <%= full ? 'badge-full' : 'badge-open' %>"><%= full ? 'Vol' : g.spots_left + (g.spots_left === 1 ? ' plek vrij' : ' plekken vrij') %></span>
+            </div>
+            <% if (g.description) { %><p class="card-desc"><%= g.description %></p><% } %>
+            <div class="card-bottom">
+              <%- include('partials/capacity', { g: g }) %>
+              <span class="arrow" aria-hidden="true">&rarr;</span>
+            </div>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+<script>
+  (function () {
+    var box = document.getElementById('only-open');
+    if (!box) return;
+    box.addEventListener('change', function () {
+      document.querySelectorAll('.group-card').forEach(function (c) {
+        c.hidden = box.checked && c.dataset.full === 'true';
+      });
+    });
+  })();
+</script>
+<%- include('partials/footer') %>

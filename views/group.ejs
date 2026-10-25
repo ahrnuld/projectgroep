@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+<section class="hero hero-small">
+  <div class="container">
+    <a class="back" href="/">&larr; Alle groepen</a>
+    <h1><%= group.name %></h1>
+    <% if (group.description) { %><p class="lead"><%= group.description %></p><% } %>
+  </div>
+</section>
+
+<section class="container section two-col">
+  <div class="panel">
+    <h2>Bezetting</h2>
+    <%- include('partials/capacity', { g: group }) %>
+    <p class="muted"><%= group.member_count %> van <%= group.capacity %> plekken bezet.</p>
+  </div>
+
+  <div class="panel panel-accent">
+    <% if (signupClosed) { %>
+      <h2>Aanmelden gesloten</h2>
+      <p>Je docent heeft het aanmelden gesloten.</p>
+    <% } else if (group.spots_left <= 0) { %>
+      <h2>Deze groep is vol</h2>
+      <p>Kies een <a href="/">andere groep</a> met nog vrije plekken.</p>
+      <%- include('partials/errors', { errors: errors }) %>
+    <% } else { %>
+      <h2>Aanmelden</h2>
+      <%- include('partials/errors', { errors: errors }) %>
+      <form method="post" action="/groups/<%= group.id %>/join" class="form" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label>Volledige naam
+          <input name="name" required maxlength="80" autocomplete="name" value="<%= values.name || '' %>">
+        </label>
+        <label>Studentnummer
+          <input name="studentNumber" required inputmode="numeric" pattern="\d{6,8}" maxlength="8" value="<%= values.studentNumber || '' %>">
+        </label>
+        <label>E-mailadres
+          <input name="email" type="email" required maxlength="120" autocomplete="email" value="<%= values.email || '' %>">
+        </label>
+        <button type="submit" class="btn btn-primary">Meld je aan <span aria-hidden="true">&rarr;</span></button>
+      </form>
+    <% } %>
+  </div>
+</section>
+<%- include('partials/footer') %>
