@@ -274,3 +274,17 @@ test('csvCell escapes separators and formulas', () => {
   assert.equal(csvCell('a;b'), '"a;b"');
   assert.equal(csvCell('+1'), "'+1");
 });
+
+test('health check responds without creating a session', async () => {
+  const res = await request(app).get('/healthz').expect(200);
+  assert.equal(res.text, 'ok');
+  assert.equal(res.headers['set-cookie'], undefined);
+});
+
+test('behind an HTTPS proxy the session cookie is Secure', async () => {
+  const proxied = createApp({ db, teacherPassword: PASSWORD, sessionSecret: 's', trustProxy: true });
+  const res = await request(proxied).get('/').set('X-Forwarded-Proto', 'https').expect(200);
+  assert.match(res.headers['set-cookie'][0], /;\s*Secure/i);
+  const plain = await request(app).get('/').expect(200);
+  assert.doesNotMatch(plain.headers['set-cookie'][0], /;\s*Secure/i);
+});

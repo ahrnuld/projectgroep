@@ -20,6 +20,19 @@ Open http://localhost:3000. The teacher dashboard is at `/teacher`.
 | `TEACHER_PASSWORD` | `docent` | Teacher login (change this before real use) |
 | `SESSION_SECRET` | random per start | Session cookie secret (set it so logins survive restarts) |
 
+## Deploy (Docker / Coolify)
+
+The repository includes a `Dockerfile` (Node 24 Alpine, non-root, health check on `/healthz`).
+
+1. In Coolify: **+ New → Public Repository**, paste the GitHub URL, branch `main`.
+2. Build pack: **Dockerfile**. Ports exposes: `3000`.
+3. Set a domain (e.g. `https://groepen.example.nl`); Coolify handles HTTPS.
+4. **Environment variables:** `TEACHER_PASSWORD` (required; the app refuses to start without it in production) and `SESSION_SECRET` (a long random string).
+5. **Persistent storage:** add a volume mounted at `/app/data`, or the database is lost on every redeploy.
+6. Deploy.
+
+Run it with a single replica: SQLite and the in-memory session store are per container. Teachers are logged out when the container restarts; student data is kept in the volume.
+
 ## Features
 
 **Students**

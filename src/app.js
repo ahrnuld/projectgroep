@@ -56,7 +56,7 @@ function csvCell(value) {
   return /[",;\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-function createApp({ db, teacherPassword, sessionSecret } = {}) {
+function createApp({ db, teacherPassword, sessionSecret, trustProxy = false } = {}) {
   if (!db) throw new Error('createApp requires a db');
   if (!teacherPassword) throw new Error('createApp requires a teacherPassword');
 
@@ -64,6 +64,14 @@ function createApp({ db, teacherPassword, sessionSecret } = {}) {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, '..', 'views'));
   app.disable('x-powered-by');
+  // Behind a reverse proxy (Coolify/Traefik) so req.secure reflects the original HTTPS request.
+  if (trustProxy) app.set('trust proxy', 1);
+
+  // Health check for the container platform; registered before sessions so it never creates one.
+  app.get('/healthz', (req, res) => {
+    db.stats();
+    res.type('text/plain').send('ok');
+  });
 
   app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: '1h' }));
   app.use(express.urlencoded({ extended: false, limit: '20kb' }));
@@ -73,7 +81,8 @@ function createApp({ db, teacherPassword, sessionSecret } = {}) {
       secret: sessionSecret || crypto.randomBytes(32).toString('hex'),
       resave: false,
       saveUninitialized: false,
-      cookie: { httpOnly: true, sameSite: 'lax', maxAge: 8 * 60 * 60 * 1000 },
+      // 'auto' marks the cookie Secure whenever the request came in over HTTPS.
+      cookie: { httpOnly: true, sameSite: 'lax', secure: 'auto', maxAge: 8 * 60 * 60 * 1000 },
     })
   );
 
